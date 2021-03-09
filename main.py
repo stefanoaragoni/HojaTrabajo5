@@ -23,32 +23,21 @@ currentTime = [] #Time that each process takes, for standard deviation
 
 #Functions
 
-def new(process, ram, cantMemoria, numInstruc, speed, environment, time, waiter):
-    
-    #--------------------New Process
-
-    #Simulates incoming time for new process
-    yield environment.timeout(time)
-
-    #Prints amount of RAM needed to complete the process
-    print (process + ':\t requiere ' + str(cantMemoria) + ' de memoria RAM') 
-
-    environment.process(ready(process, ram, cantMemoria, numInstruc, speed, environment, time, waiter))
+def terminated(process, ram, cantMemoria, numInstruc, speed, environment, time, realTime):
+    global totalTime
+    #--------------------Process Terminated
+    yield ram.put(cantMemoria)
+    print (process + ':\t Se regresa del CPU ' + str(cantMemoria)  + ' de RAM ')
 
 
-def ready(process, ram, cantMemoria, numInstruc, speed, environment, time, waiter):
+    timeTermination = environment.now - realTime
 
-    #--------------------Ready Process
-
-    realTime = environment.now
-
-    yield ram.get(cantMemoria) #retrieves the ram if available. IF NOT, IT SENDS THE REQUEST TO QUEUE AND CONTINUES WITH THE NEXT REQUEST
-    print (process + ':\t se le cede ' + str(cantMemoria) + ' de memoria RAM')
-
-    environment.process(running(process, ram, cantMemoria, numInstruc, speed, environment, time, realTime, waiter))
+    totalTime += (timeTermination)
+    currentTime.append(timeTermination)
 
 
-def running(process, ram, cantMemoria, numInstruc, speed, environment, time, realTime, waiter):
+
+def running(process, ram, cantMemoria, numInstruc, speed, environment, time, waitProcess, realTime):
 
     #--------------------Running Process
 
@@ -79,31 +68,46 @@ def running(process, ram, cantMemoria, numInstruc, speed, environment, time, rea
             currTerm = currTerm + realTime
             print (process + ':\t El CPU ha ejecutado ' + str(currTerm) + ' de ' + str(numInstruc) + ' instrucciones ')
         
-            #--------------------Process is waiting
+        #--------------------Process is waiting
 
-            #Random that determines if simulation is ready or will wait
-            choice = random.randint(1,2)
+        #Random that determines if simulation is ready or will wait
+        choice = random.randint(1,2)
 
-            if (choice == 1):
+        if (choice == 1) and (currTerm < numInstruc):
+            with waitProcess.request() as waiting:
+                yield waiting
                 yield environment.timeout(1)
                 print (process + ':\t El proceso está esperando y ejecutando operaciones I/O')
 
     environment.process(terminated(process, ram, cantMemoria, numInstruc, speed, environment, time, realTime))
             
 
-def terminated(process, ram, cantMemoria, numInstruc, speed, environment, time, realTime):
-    global totalTime
-    #--------------------Process Terminated
-    yield ram.put(cantMemoria)
-    print (process + ':\t Se regresa del CPU ' + str(cantMemoria)  + ' de RAM ')
 
+def ready(process, ram, cantMemoria, numInstruc, speed, environment, time, waitProcess):
 
+    #--------------------Ready Process
 
-    timeTermination = environment.now - realTime
+    realTime = environment.now
 
-    totalTime += (timeTermination)
-    currentTime.append(timeTermination)
+    yield ram.get(cantMemoria) #retrieves the ram if available. IF NOT, IT SENDS THE REQUEST TO QUEUE AND CONTINUES WITH THE NEXT REQUEST
+    print (process + ':\t se le cede ' + str(cantMemoria) + ' de memoria RAM')
 
+    environment.process(running(process, ram, cantMemoria, numInstruc, speed, environment, time, waitProcess, realTime))
+
+    
+
+def new(process, ram, cantMemoria, numInstruc, speed, environment, time, waitProcess):
+    
+    #--------------------New Process
+
+    #Simulates incoming time for new process
+    yield environment.timeout(time)
+
+    #Prints amount of RAM needed to complete the process
+    print (process + ':\t requiere ' + str(cantMemoria) + ' de memoria RAM') 
+
+    environment.process(ready(process, ram, cantMemoria, numInstruc, speed, environment, time, waitProcess))
+    
 
 ################################################
 
@@ -113,8 +117,14 @@ environment = simpy.Environment() #Creates environment
 cpu = simpy.Resource(environment, capacity = 1)
 ram = simpy.Container(environment, capacity=amnRam, init=amnRam) #Creates ram and CPU container
 
+waitProcess = simpy.Resource(environment, capacity = 1)
+
+
 #creates random seed
 random.seed(10000)
+
+
+################################################
 
 #Creates the different processes, sends them to the simulation
 for j in range(numProces):
@@ -123,11 +133,11 @@ for j in range(numProces):
     cantMemoria = random.randint(1,10) 
 
     #Sends process to simulation
-    environment.process(new('Proceso #'+str(j+1), ram, cantMemoria, numInstruc, speed, environment, time, waiter))
-
-#Environment ends
+    environment.process(new('Proceso #'+str(j+1), ram, cantMemoria, numInstruc, speed, environment, time, waitProcess))
 
 environment.run()
+
+#Environment ends
 
 ################################################
 
