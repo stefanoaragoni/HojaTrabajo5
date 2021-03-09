@@ -72,26 +72,30 @@ def simulacion(process, ram, cantMemoria, numInstruc, speed, environment, time):
         choice = random.randint(1,2)
 
         if (choice == 1) and (currTerm<numInstruc):
-            with wait.request() as r1:
-                yield r1
-                yield environment.timeout(1)
-                print (process + ':\t El proceso está esperando y ejecutando operaciones I/O')
+            yield environment.timeout(1)
+            print (process + ':\t El proceso está esperando y ejecutando operaciones I/O')
 
     #--------------------Process Terminated
     yield ram.put(cantMemoria)
     print (process + ':\t Se regresa del CPU ' + str(cantMemoria)  + ' de RAM ')
-    totalTime += (environment.now - realTime)
-    currentTime.append(environment.now - realTime)
+
+
+
+    timeTermination = environment.now - realTime
+    
+    totalTime += (timeTermination)
+    currentTime.append(timeTermination)
 
 ################################################
 
 #Creates simpy environment and other things    
 environment = simpy.Environment() #Creates environment
-ram = simpy.Container(environment, capacity=amnRam, init=amnRam) #Creates ram and CPU container
-cpu = simpy.Resource(environment, capacity = 1)
-wait = simpy.Resource(environment, capacity = 2) #creates resource for waiting process
 
-#sends instructions to function
+cpu = simpy.Resource(environment, capacity = 1)
+ram = simpy.Container(environment, capacity=amnRam, init=amnRam) #Creates ram and CPU container
+
+
+#creates random seed
 random.seed(10000)
 
 #Creates the different processes, sends them to the simulation
@@ -102,7 +106,8 @@ for j in range(numProces):
 
     #Sends process to simulation
     environment.process(simulacion('Proceso #'+str(j+1), ram, cantMemoria, numInstruc, speed, environment, time))
-#Process is finished
+
+#Environment ends
 
 environment.run()
 
