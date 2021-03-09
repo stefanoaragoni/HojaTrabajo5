@@ -7,10 +7,10 @@ import statistics
 
 ################################################
 
-##Start of the program
+#PARA MODIFICAR LA CANTIDAD DE RAM, PROCESOS... CAMBIAR ESTOS NUMEROS
 
 amnRam = 100 #Total amount of ram available
-numProces = 25 #Amount of processes to be done
+numProces = 200 #Amount of processes to be done
 speed = 3.0 #speed
 amountInst = 1 #Intervalo
 
@@ -24,11 +24,12 @@ currentTime = [] #Time that each process takes, for standard deviation
 #Functions
 
 def terminated(process, ram, cantMemoria, numInstruc, speed, environment, time, realTime):
+
     global totalTime
+
     #--------------------Process Terminated
     yield ram.put(cantMemoria)
-    print (process + ':\t Se regresa del CPU ' + str(cantMemoria)  + ' de RAM ')
-
+    print (process + ':\t Se regresa al CPU ' + str(cantMemoria)  + ' de RAM ')
 
     timeTermination = environment.now - realTime
 
@@ -54,19 +55,36 @@ def running(process, ram, cantMemoria, numInstruc, speed, environment, time, wai
         with cpu.request() as cpuRequest:
             yield cpuRequest
 
-            #checks if the iremaining nstructions amount is bigger than the amount of speed
+            #checks if the remaining instructions amount is bigger than the amount of speed
             if (toDo)>= speed:
                 realTime = int(speed)
+                #Prints the amount of instructions completed
+                print (process + ':\t El CPU ejecutara ' + str(realTime) + ' instrucciones')
+                yield environment.timeout(realTime/speed)
+
+                #Updates the amount of instructions completed with this cycle
+                currTerm = currTerm + realTime
+                print (process + ':\t El CPU ha ejecutado ' + str(currTerm) + ' de ' + str(numInstruc) + ' instrucciones ')
+
+            elif(toDo == 1):
+                realTime = int(1)
+                #Prints the amount of instructions completed
+                print (process + ':\t El CPU ejecutara 1 instruccion')
+                yield environment.timeout(realTime/speed)
+
+                #Updates the amount of instructions completed with this cycle
+                currTerm = currTerm + realTime
+                print (process + ':\t El CPU ha ejecutado 1 de ' + str(numInstruc) + ' instrucciones ')
+
             else:
                 realTime = int(toDo)
+                #Prints the amount of instructions completed
+                print (process + ':\t El CPU ejecutara ' + str(realTime) + ' instrucciones')
+                yield environment.timeout(realTime/speed)
 
-            #Prints the amount of instructions completed
-            print (process + ':\t El CPU ejecutara ' + str(realTime) + ' instrucciones')
-            yield environment.timeout(realTime/speed)
-
-            #Updates the amount of instructions completed with this cycle
-            currTerm = currTerm + realTime
-            print (process + ':\t El CPU ha ejecutado ' + str(currTerm) + ' de ' + str(numInstruc) + ' instrucciones ')
+                #Updates the amount of instructions completed with this cycle
+                currTerm = currTerm + realTime
+                print (process + ':\t El CPU ha ejecutado ' + str(currTerm) + ' de ' + str(numInstruc) + ' instrucciones ')
         
         #--------------------Process is waiting
 
@@ -143,7 +161,7 @@ environment.run()
 
 #Mean
 avg = (totalTime/numProces)
-print ('\n\nEl promedio de los procesos es: ' + str(avg) + ' unidades de tiempo de Simpy')
+print ('\n\nEl tiempo promedio para completar un proceso es: ' + str(avg) + ' unidades de tiempo de Simpy')
 
 #Standard deviation
 
