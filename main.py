@@ -1,9 +1,12 @@
-import simpy
-import random
-import statistics
 
 #Algortimos y Estructura de Datos
 #Autores: Stefano Aragoni 20261 y Roberto Vallecillos 20441
+
+#main.py
+
+import simpy
+import random
+import statistics
 
 ################################################
 
@@ -23,7 +26,7 @@ currentTime = [] #Time that each process takes, for standard deviation
 
 #Functions
 
-def terminated(process, ram, cantMemoria, numInstruc, speed, environment, time, realTime):
+def terminated(process, ram, cantMemoria, environment, realTime):
 
     global totalTime
 
@@ -31,14 +34,17 @@ def terminated(process, ram, cantMemoria, numInstruc, speed, environment, time, 
     yield ram.put(cantMemoria)
     print (process + ':\t Se regresa al CPU ' + str(cantMemoria)  + ' de RAM ')
 
+    #calculates time taken to complete process
     timeTermination = environment.now - realTime
 
+    #adds time to global variable
     totalTime += (timeTermination)
+    #adds time to arraylist in order to calculate standard deviation
     currentTime.append(timeTermination)
 
 
 
-def running(process, ram, cantMemoria, numInstruc, speed, environment, time, waitProcess, realTime):
+def running(process, ram, cantMemoria, numInstruc, speed, environment, waitProcess, realTime):
 
     #--------------------Running Process
 
@@ -55,7 +61,7 @@ def running(process, ram, cantMemoria, numInstruc, speed, environment, time, wai
         with cpu.request() as cpuRequest:
             yield cpuRequest
 
-            #checks if the remaining instructions amount is bigger than the amount of speed
+            #checks if the remaining instructions amount is bigger than the speed
             if (toDo)>= speed:
                 realTime = int(speed)
                 #Prints the amount of instructions completed
@@ -97,7 +103,7 @@ def running(process, ram, cantMemoria, numInstruc, speed, environment, time, wai
                 yield environment.timeout(1)
                 print (process + ':\t El proceso está esperando y ejecutando operaciones I/O')
 
-    environment.process(terminated(process, ram, cantMemoria, numInstruc, speed, environment, time, realTime))
+    environment.process(terminated(process, ram, cantMemoria, environment, realTime))
             
 
 
@@ -110,11 +116,11 @@ def ready(process, ram, cantMemoria, numInstruc, speed, environment, time, waitP
     yield ram.get(cantMemoria) #retrieves the ram if available. IF NOT, IT SENDS THE REQUEST TO QUEUE AND CONTINUES WITH THE NEXT REQUEST
     print (process + ':\t se le cede ' + str(cantMemoria) + ' de memoria RAM')
 
-    environment.process(running(process, ram, cantMemoria, numInstruc, speed, environment, time, waitProcess, realTime))
+    environment.process(running(process, ram, cantMemoria, numInstruc, speed, environment, waitProcess, realTime))
 
     
 
-def new(process, ram, cantMemoria, numInstruc, speed, environment, time, waitProcess):
+def new(process, ram, cantMemoria, numInstruc, speed, environment, waitProcess):
     
     #--------------------New Process
 
@@ -124,7 +130,7 @@ def new(process, ram, cantMemoria, numInstruc, speed, environment, time, waitPro
     #Prints amount of RAM needed to complete the process
     print (process + ':\t requiere ' + str(cantMemoria) + ' de memoria RAM') 
 
-    environment.process(ready(process, ram, cantMemoria, numInstruc, speed, environment, time, waitProcess))
+    environment.process(ready(process, ram, cantMemoria, numInstruc, speed, environment, waitProcess))
     
 
 ################################################
@@ -165,4 +171,4 @@ print ('\n\nEl tiempo promedio para completar un proceso es: ' + str(avg) + ' un
 
 #Standard deviation
 
-print('\nLa desviacion estandar del time promedio de los procesos es: ' + str((statistics.stdev(currentTime))) + ' unidades de tiempo de Simpy')
+print('\nLa desviacion estandar del tiempo promedio de los procesos es: ' + str((statistics.stdev(currentTime))) + ' unidades de tiempo de Simpy')
