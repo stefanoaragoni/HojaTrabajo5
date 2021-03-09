@@ -63,33 +63,33 @@ def running(process, ram, cantMemoria, numInstruc, speed, environment, waitProce
 
             #checks if the remaining instructions amount is bigger than the speed
             if (toDo)>= speed:
-                realTime = int(speed)
+                curr = int(speed)
                 #Prints the amount of instructions completed
-                print (process + ':\t El CPU ejecutara ' + str(realTime) + ' instrucciones')
-                yield environment.timeout(realTime/speed)
+                print (process + ':\t El CPU ejecutara ' + str(curr) + ' instrucciones')
+                yield environment.timeout(curr/speed)
 
                 #Updates the amount of instructions completed with this cycle
-                currTerm = currTerm + realTime
+                currTerm = currTerm + curr
                 print (process + ':\t El CPU ha ejecutado ' + str(currTerm) + ' de ' + str(numInstruc) + ' instrucciones ')
 
             elif(toDo == 1):
-                realTime = int(1)
+                curr = int(1)
                 #Prints the amount of instructions completed
                 print (process + ':\t El CPU ejecutara 1 instruccion')
-                yield environment.timeout(realTime/speed)
+                yield environment.timeout(curr/speed)
 
                 #Updates the amount of instructions completed with this cycle
-                currTerm = currTerm + realTime
-                print (process + ':\t El CPU ha ejecutado 1 de ' + str(numInstruc) + ' instrucciones ')
+                currTerm = currTerm + curr
+                print (process + ':\t El CPU ha ejecutado ' + str(currTerm) + ' de '  + str(numInstruc) + ' instrucciones ')
 
             else:
-                realTime = int(toDo)
+                curr = int(toDo)
                 #Prints the amount of instructions completed
-                print (process + ':\t El CPU ejecutara ' + str(realTime) + ' instrucciones')
-                yield environment.timeout(realTime/speed)
+                print (process + ':\t El CPU ejecutara ' + str(curr) + ' instrucciones')
+                yield environment.timeout(curr/speed)
 
                 #Updates the amount of instructions completed with this cycle
-                currTerm = currTerm + realTime
+                currTerm = currTerm + curr
                 print (process + ':\t El CPU ha ejecutado ' + str(currTerm) + ' de ' + str(numInstruc) + ' instrucciones ')
         
         #--------------------Process is waiting
@@ -107,7 +107,7 @@ def running(process, ram, cantMemoria, numInstruc, speed, environment, waitProce
             
 
 
-def ready(process, ram, cantMemoria, numInstruc, speed, environment, time, waitProcess):
+def ready(process, ram, cantMemoria, numInstruc, speed, environment, waitProcess):
 
     #--------------------Ready Process
 
@@ -120,7 +120,7 @@ def ready(process, ram, cantMemoria, numInstruc, speed, environment, time, waitP
 
     
 
-def new(process, ram, cantMemoria, numInstruc, speed, environment, waitProcess):
+def new(process, ram, cantMemoria, numInstruc, speed, environment, time, waitProcess):
     
     #--------------------New Process
 
